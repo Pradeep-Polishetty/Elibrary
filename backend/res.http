@@ -23,6 +23,17 @@ Content-Type: application/json
     "username": "admin",
     "password": "admin@123"
 }
+### get user profile
+GET http://localhost:5000/api/users/profile
+Authorization: Bearer <your_user_jwt_token>
+### update user profile
+PUT http://localhost:5000/api/users/profile
+Content-Type: application/json
+Authorization: Bearer <your_user_jwt_token>
+
+{
+    "username": "myNewUsername"
+}
 ### get all books
 GET http://localhost:5000/api/books
 ### get book by filter
