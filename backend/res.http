@@ -25,7 +25,7 @@ Content-Type: application/json
 }
 ### get user profile
 GET http://localhost:5000/api/users/profile
-Authorization: Bearer <your_user_jwt_token>
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4OWM4MzMxMjNkZmIxOGZjZGNkODdkNSIsImlhdCI6MTc1NTM2NjQ0MiwiZXhwIjoxNzU3OTU4NDQyfQ.2KSCaBa1DzzwxyQGJKmfq6rohdhu6lcBdYX9fq6_Egs
 ### update user profile
 PUT http://localhost:5000/api/users/profile
 Content-Type: application/json
@@ -37,13 +37,13 @@ Authorization: Bearer <your_user_jwt_token>
 ### get all books
 GET http://localhost:5000/api/books
 ### get book by filter
-GET http://localhost:5000/api/books?author=tolkien&rating=4
+GET http://localhost:5000/api/books?author=J.R.R. Tolkien&rating=3
 ### get book by id
-GET http://localhost:5000/api/books/<book_id>
+GET http://localhost:5000/api/books/689c840c23dfb18fcdcd87e6
 ### rate a book
-POST http://localhost:5000/api/books/<book_id>/rate
+POST http://localhost:5000/api/books/68a4cb650c0d84727fd833ae/rate
 Content-Type: application/json
-Authorization: Bearer <your_user_jwt_token>
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4OWM4MzMxMjNkZmIxOGZjZGNkODdkNSIsImlhdCI6MTc1NTcxNjUxNCwiZXhwIjoxNzU1NzIwMTE0fQ.Y7NWzyRCbVF7nyfqHq5H3m1Tg8NdgvHZK2pnx__HDlE
 
 {
     "rating": 5,
@@ -60,7 +60,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4OWM4MGFkY
 ------WebKitFormBoundary7MA4YWxkTrZu0gW
 Content-Disposition: form-data; name="name"
 
-The Hobbit
+The nptel
 ------WebKitFormBoundary7MA4YWxkTrZu0gW
 Content-Disposition: form-data; name="author"
 
@@ -70,8 +70,8 @@ Content-Disposition: form-data; name="publishedBy"
 
 George Allen & Unwin
 ------WebKitFormBoundary7MA4YWxkTrZu0gW
-Content-Disposition: form-data; name="bookFile"; filename="the_hobbit.pdf"
+Content-Disposition: form-data; name="bookFile"; filename="nptel.pdf"
 Content-Type: application/pdf
 
-(binary content of the pdf file here)
+hi i am pradeep
 ------WebKitFormBoundary7MA4YWxkTrZu0gW--

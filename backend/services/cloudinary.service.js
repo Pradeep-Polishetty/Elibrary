@@ -13,7 +13,10 @@ const uploadFile = (fileBuffer, folderName) => {
     const uploadStream = cloudinary.uploader.upload_stream(
       {
         folder: folderName,
-        resource_type: 'raw', // Use 'raw' for PDFs and other non-image files
+        resource_type: 'raw',
+        // --- THIS IS THE FIX ---
+        format: 'pdf', // Explicitly tell Cloudinary the format
+        // --- END OF FIX ---
       },
       (error, result) => {
         if (error) {
