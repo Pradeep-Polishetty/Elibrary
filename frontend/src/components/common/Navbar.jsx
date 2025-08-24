@@ -21,9 +21,9 @@ const Navbar = () => {
   const isAdmin = user?.isAdmin;
 
   return (
-    <nav className="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm">
-      <div className="container">
-        <Link className="navbar-brand" to="/">E-Library</Link>
+    <nav className="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm rounded-3">
+      <div className="container ">
+        <Link className="navbar-brand text-primary" to="/">E-Library</Link>
         <button className="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
           <span className="navbar-toggler-icon"></span>
         </button>
@@ -34,7 +34,7 @@ const Navbar = () => {
               <>
                 {!isAdmin && (
                   <li className="nav-item">
-                    <NavLink className="nav-link" to="/profile">Profile</NavLink>
+                    <NavLink className="nav-link text-primary text-opacity-50" to="/profile">Profile</NavLink>
                   </li>
                 )}
                 {isAdmin && (
@@ -50,7 +50,7 @@ const Navbar = () => {
                   </li>
                 )}
                 <li className="nav-item">
-                  <button onClick={handleLogout} className="btn btn-link nav-link">Logout</button>
+                  <button onClick={handleLogout} className="btn btn-link nav-link text-primary text-opacity-50">Logout</button>
                 </li>
               </>
             ) : (

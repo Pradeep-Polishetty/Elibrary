@@ -8,13 +8,13 @@ const HomePage = () => {
 
   return (
     <div className="container py-5">
-      <div className="p-5 mb-4 text-center bg-light rounded-3">
+      <div className="p-5 mb-4 text-center text-info  rounded-3">
         {user ? (
           <h1 className="display-4">Welcome back, {user.username}!</h1>
         ) : (
           <h1 className="display-4">Welcome to the E-Library</h1>
         )}
-        <p className="lead">
+        <p className="lead text-info text-opacity-75">
           Browse our collection of books, leave reviews, and enjoy your reading.
         </p>
       </div>

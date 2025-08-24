@@ -6,7 +6,7 @@ const RatingForm = ({ bookId }) => {
   const [rating, setRating] = useState(5);
   const [feedback, setFeedback] = useState('');
   const [rateBook, { isLoading }] = useRateBookMutation();
-
+  console.log(feedback);
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
