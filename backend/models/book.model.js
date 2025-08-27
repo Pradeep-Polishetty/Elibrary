@@ -4,6 +4,7 @@ const bookSchema = new mongoose.Schema({
   name: { type: String, required: true },
   author: { type: String, required: true },
   publishedBy: { type: String, required: true },
+  tag: { type: String, required: true },
   cloudinaryFileUrl: { type: String, required: true },
   cloudinaryFileId: { type: String, required: true },
   averageRating: { type: Number, default: 0 },

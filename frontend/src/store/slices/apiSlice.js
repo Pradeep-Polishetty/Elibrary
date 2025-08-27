@@ -58,7 +58,11 @@ export const apiSlice = createApi({
 
     // --- Book Endpoints ---
     getBooks: builder.query({
-      query: () => '/books',
+      query: (params) => {
+        // Build the query string from the params object
+        const queryString = new URLSearchParams(params).toString();
+        return `/books?${queryString}`;
+      },
       providesTags: ['Book'],
     }),
     getBookById: builder.query({

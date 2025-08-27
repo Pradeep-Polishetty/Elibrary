@@ -6,14 +6,15 @@ const mongoose = require('mongoose');
 // @route   GET /api/books
 exports.getAllBooks = async (req, res) => {
   try {
-    const { name, author, rating } = req.query;
+    const { name, author, rating, tag } = req.query; // <-- Add 'tag' here
     const filter = {};
 
     if (name) filter.name = { $regex: name, $options: 'i' };
     if (author) filter.author = { $regex: author, $options: 'i' };
     if (rating) filter.averageRating = { $gte: Number(rating) };
+    if (tag) filter.tag = tag; // <-- Add this line
 
-    const books = await Book.find(filter).select('-cloudinaryFileId'); // Exclude file ID
+    const books = await Book.find(filter).select('-cloudinaryFileId');
     res.json(books);
   } catch (error) {
     res.status(500).json({ message: 'Server Error', error: error.message });

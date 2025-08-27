@@ -28,20 +28,20 @@ exports.getDashboardStats = async (req, res) => {
 // @desc    Upload a new book
 // @route   POST /api/admin/books/upload
 exports.uploadBook = async (req, res) => {
-  const { name, author, publishedBy } = req.body;
+  const { name, author, publishedBy, tag } = req.body; // <-- Add 'tag' here
 
-  if (!name || !author || !publishedBy || !req.file) {
+  if (!name || !author || !publishedBy || !tag || !req.file) { // <-- Add '!tag' check
     return res.status(400).json({ message: 'Please provide all fields and a file' });
   }
 
   try {
-    // Upload file to Cloudinary
     const result = await uploadFile(req.file.buffer, 'books');
     
     const newBook = await Book.create({
       name,
       author,
       publishedBy,
+      tag, // <-- Add 'tag' here
       cloudinaryFileUrl: result.secure_url,
       cloudinaryFileId: result.public_id,
     });
