@@ -17,13 +17,16 @@ export const apiSlice = createApi({
   tagTypes: ['Book', 'User', 'Admin'],
   endpoints: (builder) => ({
     // --- Authentication Endpoints ---
-    login: builder.mutation({
-      query: (credentials) => ({
+        login: builder.mutation({
+      query: ({ firebaseToken }) => ({
         url: '/auth/login',
         method: 'POST',
-        body: { ...credentials },
+        headers: {
+          Authorization: `Bearer ${firebaseToken}`,
+        },
       }),
     }),
+
     adminLogin: builder.mutation({
       query: (credentials) => ({
         url: '/auth/admin/login',
@@ -81,6 +84,10 @@ export const apiSlice = createApi({
       }),
       invalidatesTags: ['Book'],
     }),
+     getUsers: builder.query({
+      query: () => '/admin/users',
+      providesTags: ['User'],
+    }),
     getDashboardStats: builder.query({
       query: () => '/admin/dashboard',
       providesTags: ['Admin'],
@@ -99,5 +106,6 @@ export const {
   useGetBookByIdQuery,
   useRateBookMutation,
   useUploadBookMutation,
+  useGetUsersQuery,
   useGetDashboardStatsQuery,
 } = apiSlice;

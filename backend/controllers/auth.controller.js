@@ -1,85 +1,71 @@
 const User = require('../models/user.model');
 const Admin = require('../models/admin.model');
-const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const admin = require('firebase-admin');
 
-// Generate JWT
+// Generate backend JWT (for session)
 const generateToken = (id) => {
-  return jwt.sign({ id }, process.env.JWT_SECRET, {
-    expiresIn: '1h',
-  });
+  return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: '1h' });
 };
 
-// @desc    Register a new user
-// @route   POST /api/auth/register
-exports.registerUser = async (req, res) => {
-  const { username, email, password } = req.body;
-
+// Firebase login
+exports.firebaseAuth = async (req, res) => {
   try {
-    if (!username || !email || !password) {
-      return res.status(400).json({ message: 'Please enter all fields' });
+    const token = req.headers.authorization?.split(" ")[1];
+    if (!token) return res.status(401).json({ message: 'No Firebase token provided' });
+
+    const decoded = await admin.auth().verifyIdToken(token);
+
+    let user = await User.findOne({ email: decoded.email });
+    if (!user) {
+      user = await User.create({
+        username: decoded.name || decoded.email.split('@')[0],
+        email: decoded.email,
+      });
     }
 
-    const userExists = await User.findOne({ email });
-    if (userExists) {
-      return res.status(400).json({ message: 'User already exists' });
-    }
+    // ✅ issue backend JWT only
+    const backendToken = generateToken(user._id);
 
-    const user = await User.create({ username, email, password });
-
-    res.status(201).json({
+    res.json({
       _id: user._id,
       username: user.username,
       email: user.email,
-      token: generateToken(user._id),
+      token: backendToken,
     });
   } catch (error) {
-    res.status(500).json({ message: 'Server Error', error: error.message });
+    console.error('Firebase login error:', error);
+    res.status(401).json({ message: 'Unauthorized', error: error.message });
   }
 };
 
-// @desc    Authenticate a user
-// @route   POST /api/auth/login
-exports.loginUser = async (req, res) => {
+// @desc Admin Login (still custom, not Firebase)
+// @route POST /api/auth/admin/login
+exports.loginAdmin = async (req, res) => {
   const { username, password } = req.body;
 
   try {
-    const user = await User.findOne({ username });
+    const adminUser = await Admin.findOne({ username });
 
-    if (user && (await bcrypt.compare(password, user.password))) {
+    if (!adminUser) {
+      return res.status(401).json({ message: 'Admin not found' });
+    }
+
+    // For admin, still use password check (bcrypt if you stored hashed password)
+    const bcrypt = require('bcryptjs');
+    const isMatch = await bcrypt.compare(password, adminUser.password);
+
+    if (isMatch) {
       res.json({
-        _id: user._id,
-        username: user.username,
-        email: user.email,
-        token: generateToken(user._id),
+        _id: adminUser._id,
+        username: adminUser.username,
+        email: adminUser.email,
+        token: generateToken(adminUser._id),
       });
     } else {
-      res.status(401).json({ message: 'Invalid credentials' });
+      res.status(401).json({ message: 'Invalid admin credentials' });
     }
   } catch (error) {
     res.status(500).json({ message: 'Server Error', error: error.message });
   }
-};
-
-// @desc    Authenticate an admin
-// @route   POST /api/auth/admin/login
-exports.loginAdmin = async (req, res) => {
-    const { username, password } = req.body;
-
-    try {
-        const admin = await Admin.findOne({ username });
-
-        if (admin && (await bcrypt.compare(password, admin.password))) {
-            res.json({
-                _id: admin._id,
-                username: admin.username,
-                email: admin.email,
-                token: generateToken(admin._id),
-            });
-        } else {
-            res.status(401).json({ message: 'Invalid admin credentials' });
-        }
-    } catch (error) {
-        res.status(500).json({ message: 'Server Error', error: error.message });
-    }
 };

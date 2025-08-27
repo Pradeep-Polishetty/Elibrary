@@ -10,7 +10,6 @@ import AdminLoginPage from './pages/AdminLoginPage';
 import AdminDashboardPage from './pages/AdminDashboardPage';
 import AdminUploadPage from './pages/AdminUploadPage';
 import './App.css';
-import LoginForm from './components/auth/LoginForm';
 
 function App() {
   return (
