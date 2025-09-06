@@ -1,23 +1,21 @@
 const User = require('../models/user.model');
-const bcrypt = require('bcryptjs');
 
 // @desc    Get user profile
 // @route   GET /api/users/profile
-// @access  Private
 const getUserProfile = async (req, res) => {
-  // The user is already available from the 'protect' middleware
-  res.json({
-    _id: req.user._id,
-    username: req.user.username,
-    email: req.user.email,
-  });
+  // The user's ID is attached by the 'protect' middleware. We fetch the full profile.
+  const user = await User.findById(req.user.id).select('-password');
+  if (user) {
+    res.json(user);
+  } else {
+    res.status(404).json({ message: 'User not found' });
+  }
 };
 
 // @desc    Update user profile
 // @route   PUT /api/users/profile
-// @access  Private
 const updateUserProfile = async (req, res) => {
-  const user = await User.findById(req.user._id);
+  const user = await User.findById(req.user.id);
 
   if (user) {
     user.username = req.body.username || user.username;
@@ -29,14 +27,45 @@ const updateUserProfile = async (req, res) => {
 
     const updatedUser = await user.save();
 
-    res.json({
-      _id: updatedUser._id,
-      username: updatedUser.username,
-      email: updatedUser.email,
-    });
+    // Send back the updated user object (without the password)
+    const userToReturn = updatedUser.toObject();
+    delete userToReturn.password;
+    
+    res.json(userToReturn);
   } else {
     res.status(404).json({ message: 'User not found' });
   }
 };
 
-module.exports = { getUserProfile, updateUserProfile };
+// @desc    Set user role
+// @route   PUT /api/users/role
+const setrole = async (req, res) => {
+  const { role } = req.body;
+  if (!['student', 'faculty'].includes(role)) {
+    return res.status(400).json({ message: 'Invalid role specified.' });
+  }
+
+  try {
+    const user = await User.findById(req.user.id); // <-- Use req.user.id
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found.' });
+    }
+
+    if (user.role !== null) {
+      return res.status(400).json({ message: 'Role has already been set.' });
+    }
+
+    user.role = role;
+    await user.save();
+    
+    const updatedUser = user.toObject();
+    delete updatedUser.password;
+
+    res.json(updatedUser);
+  } catch (error) {
+    res.status(500).json({ message: 'Server Error', error: error.message });
+  }
+};
+
+module.exports = { getUserProfile, updateUserProfile, setrole };

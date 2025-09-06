@@ -1,7 +1,8 @@
-const {admin} = require("./config/firebaseAdmin");
-const serviceAccount = require("./config/e-library-5e0ac-firebase-adminsdk-fbsvc-491ed6f8f0.json");
+// backend/config/firebaseAdmin.js
+const admin = require('firebase-admin');
+const serviceAccount = require('./e-library-5e0ac-firebase-adminsdk-fbsvc-491ed6f8f0.json');
 
-// ✅ Prevent duplicate initialization
+// Initialize once
 if (!admin.apps.length) {
   admin.initializeApp({
     credential: admin.credential.cert(serviceAccount),

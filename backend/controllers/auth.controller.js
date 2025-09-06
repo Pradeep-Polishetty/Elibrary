@@ -1,57 +1,65 @@
 const User = require('../models/user.model');
 const Admin = require('../models/admin.model');
 const jwt = require('jsonwebtoken');
-const admin = require('firebase-admin');
+//const admin = require('firebase-admin');
+const { admin, auth } = require('../config/firebaseAdmin');
 
 // Generate backend JWT (for session)
 const generateToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: '1h' });
 };
 
-// Firebase login
-exports.firebaseAuth = async (req, res) => {
+// --- THIS FUNCTION IS NOW CORRECTED ---
+const firebaseLogin = async (req, res) => {
   try {
-    const token = req.headers.authorization?.split(" ")[1];
-    if (!token) return res.status(401).json({ message: 'No Firebase token provided' });
+    // Read token from header (preferred)
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return res.status(401).json({ message: "No Firebase token provided" });
+    }
+    const firebaseToken = authHeader.split(" ")[1];
 
-    const decoded = await admin.auth().verifyIdToken(token);
+    // Verify the token with Firebase Admin SDK
+    const decodedToken = await admin.auth().verifyIdToken(firebaseToken);
+    // console.log("Decoded Firebase token:", decodedToken);
 
-    let user = await User.findOne({ email: decoded.email });
+    // User lookup/creation
+    let user = await User.findOne({ email: decodedToken.email });
     if (!user) {
       user = await User.create({
-        username: decoded.name || decoded.email.split('@')[0],
-        email: decoded.email,
+        username: decodedToken.name || decodedToken.email.split('@')[0],
+        email: decodedToken.email,
+        password: decodedToken.uid, 
       });
     }
 
-    // ✅ issue backend JWT only
+    // Create backend token
     const backendToken = generateToken(user._id);
 
     res.json({
       _id: user._id,
       username: user.username,
       email: user.email,
+      role: user.role,
       token: backendToken,
     });
   } catch (error) {
-    console.error('Firebase login error:', error);
-    res.status(401).json({ message: 'Unauthorized', error: error.message });
+    console.error("Firebase login error:", error);
+    res.status(401).json({ message: "Unauthorized", error: error.message });
   }
 };
 
-// @desc Admin Login (still custom, not Firebase)
-// @route POST /api/auth/admin/login
-exports.loginAdmin = async (req, res) => {
-  const { username, password } = req.body;
+// --- END OF FIX ---
 
+
+const loginAdmin = async (req, res) => {
+  const { username, password } = req.body;
   try {
     const adminUser = await Admin.findOne({ username });
-
     if (!adminUser) {
       return res.status(401).json({ message: 'Admin not found' });
     }
 
-    // For admin, still use password check (bcrypt if you stored hashed password)
     const bcrypt = require('bcryptjs');
     const isMatch = await bcrypt.compare(password, adminUser.password);
 
@@ -68,4 +76,9 @@ exports.loginAdmin = async (req, res) => {
   } catch (error) {
     res.status(500).json({ message: 'Server Error', error: error.message });
   }
+};
+
+module.exports = {
+  firebaseLogin,
+  loginAdmin,
 };

@@ -3,9 +3,9 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import toast from 'react-hot-toast';
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
-import { auth } from '../utils/firebase'; // Correct path to your firebase config
-import { useGetUsersQuery } from '../store/slices/apiSlice'; // 1. Import from apiSlice
+import { auth } from '../utils/firebase';
 import { setCredentials } from '../store/slices/authSlice';
+import { useFirebaseLoginMutation } from '../store/slices/apiSlice';
 
 const RegisterPage = () => {
   const [username, setUsername] = useState('');
@@ -13,48 +13,44 @@ const RegisterPage = () => {
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  // Fetch the list of existing users to check for duplicates
-  const { data: users } = useGetUsersQuery();
-  const [error, setError] = useState(null);
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const [firebaseLogin] = useFirebaseLoginMutation();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    // 2. Corrected logic to check if the username already exists
-    const usernameExists = users?.some(
-      (user) => user.username.toLowerCase() === username.toLowerCase()
-    );
-
-    if (usernameExists) {
-      toast.error('Username already exists. Please choose another.');
-      // console.error('Registration error:', err);
-      setError('Username already exists. Please choose another.');
-      return;
-    }
-
     setIsLoading(true);
+    //console.log("Registering user:", { username, email });
+
     try {
-      // Create user in Firebase
+      // Step 1: Create user in Firebase with email and password
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      
+
       const user = userCredential.user;
+      console.log("Firebase user created:", user);
 
-      // Set the user's display name in their Firebase profile
+      // Step 2: Set their display name (username) in their Firebase profile
       await updateProfile(user, { displayName: username });
+      
+      // Step 3: Get the Firebase token and log them into your backend
+      // This creates the user in your own MongoDB database
+      const firebaseToken = await user.getIdToken();
+      const apiResponse = await firebaseLogin({ firebaseToken }).unwrap();
 
-      // Save user credentials (including your custom backend token if needed) to Redux
-      dispatch(setCredentials({ 
-        user: { uid: user.uid, email: user.email, displayName: username }, 
-        token: await user.getIdToken() 
+      // Step 4: Save the credentials from your backend to the Redux store
+      dispatch(setCredentials({
+        user: apiResponse, // This now includes the 'unassigned' role
+        token: apiResponse.token,
       }));
 
       toast.success('Registration successful!');
-      navigate('/');
-    } catch (err) {
-      toast.error(err.message || 'Registration failed. Please try again.');
-      
+      navigate('/'); // Redirect to the homepage to see the role selection pop-up
+    }catch (err) {
+      console.error("🔥 Registration error:", err);   // <--- add this
+      toast.error(err?.data?.message || err.message || 'Registration failed.');
     } finally {
+
       setIsLoading(false);
     }
   };
@@ -95,9 +91,9 @@ const RegisterPage = () => {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
+              placeholder="At least 6 characters"
             />
           </div>
-          {error!==null && <div className="alert alert-danger">{error}</div>}
           <button type="submit" className="btn btn-success w-100" disabled={isLoading}>
             {isLoading ? 'Creating Account...' : 'Create Account'}
           </button>

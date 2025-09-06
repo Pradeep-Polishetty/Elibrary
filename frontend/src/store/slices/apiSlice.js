@@ -17,16 +17,17 @@ export const apiSlice = createApi({
   tagTypes: ['Book', 'User', 'Admin'],
   endpoints: (builder) => ({
     // --- Authentication Endpoints ---
-        login: builder.mutation({
+    firebaseLogin: builder.mutation({
       query: ({ firebaseToken }) => ({
-        url: '/auth/login',
+        // --- THIS IS THE FIX ---
+        url: '/auth/firebase-login', // Corrected URL
+        // --- END OF FIX ---
         method: 'POST',
         headers: {
           Authorization: `Bearer ${firebaseToken}`,
         },
       }),
     }),
-
     adminLogin: builder.mutation({
       query: (credentials) => ({
         url: '/auth/admin/login',
@@ -34,15 +35,8 @@ export const apiSlice = createApi({
         body: { ...credentials },
       }),
     }),
-    register: builder.mutation({
-      query: (credentials) => ({
-        url: '/auth/register',
-        method: 'POST',
-        body: { ...credentials },
-      }),
-    }),
-
-    // --- User Profile Endpoints ---
+    
+    // --- User Profile & Role Endpoints ---
     getProfile: builder.query({
       query: () => '/users/profile',
       providesTags: ['User'],
@@ -55,13 +49,27 @@ export const apiSlice = createApi({
       }),
       invalidatesTags: ['User'],
     }),
+    setRole: builder.mutation({
+        query: (data) => ({
+            url: '/users/role',
+            method: 'PUT',
+            body: data,
+        }),
+        invalidatesTags: ['User'],
+    }),
 
     // --- Book Endpoints ---
     getBooks: builder.query({
       query: (params) => {
-        // Build the query string from the params object
-        const queryString = new URLSearchParams(params).toString();
-        return `/books?${queryString}`;
+        // Create a new URLSearchParams object
+        const searchParams = new URLSearchParams();
+        // Only append the 'tag' if it's not an empty string
+        if (params && params.tag) {
+          searchParams.append('tag', params.tag);
+        }
+        
+        // Return the final URL
+        return `/books?${searchParams.toString()}`;
       },
       providesTags: ['Book'],
     }),
@@ -77,7 +85,6 @@ export const apiSlice = createApi({
       }),
       invalidatesTags: (result, error, { id }) => [{ type: 'Book', id }],
     }),
-    
 
     // --- Admin Endpoints ---
     uploadBook: builder.mutation({
@@ -88,7 +95,7 @@ export const apiSlice = createApi({
       }),
       invalidatesTags: ['Book'],
     }),
-     getUsers: builder.query({
+    getUsers: builder.query({
       query: () => '/admin/users',
       providesTags: ['User'],
     }),
@@ -99,13 +106,12 @@ export const apiSlice = createApi({
   }),
 });
 
-// Export all hooks for usage in components
 export const {
-  useLoginMutation,
+  useFirebaseLoginMutation,
   useAdminLoginMutation,
-  useRegisterMutation,
   useGetProfileQuery,
   useUpdateProfileMutation,
+  useSetRoleMutation,
   useGetBooksQuery,
   useGetBookByIdQuery,
   useRateBookMutation,

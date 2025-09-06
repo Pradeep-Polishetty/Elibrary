@@ -2,17 +2,14 @@ const Book = require('../models/book.model');
 const User = require('../models/user.model');
 const { uploadFile } = require('../services/cloudinary.service');
 
-// @desc    Get dashboard stats
-// @route   GET /api/admin/dashboard
-exports.getDashboardStats = async (req, res) => {
+// Get dashboard stats (no changes here)
+const getDashboardStats = async (req, res) => {
   try {
     const totalUsers = await User.countDocuments();
     const totalBooks = await Book.countDocuments();
-    
-    // Get books sorted by most viewed
     const mostViewedBooks = await Book.find()
       .sort({ viewCount: -1 })
-      .limit(10) // Limit to top 10 for performance
+      .limit(10)
       .select('name author viewCount lastViewed');
 
     res.json({
@@ -25,14 +22,15 @@ exports.getDashboardStats = async (req, res) => {
   }
 };
 
-// @desc    Upload a new book
-// @route   POST /api/admin/books/upload
-exports.uploadBook = async (req, res) => {
-  const { name, author, publishedBy, tag } = req.body; // <-- Add 'tag' here
+// Upload a new book
+const uploadBook = async (req, res) => {
+  // --- THIS IS THE CHANGE ---
+  const { name, author, publishedBy, tag, access } = req.body;
 
-  if (!name || !author || !publishedBy || !tag || !req.file) { // <-- Add '!tag' check
+  if (!name || !author || !publishedBy || !tag || !access || !req.file) {
     return res.status(400).json({ message: 'Please provide all fields and a file' });
   }
+  // --- END OF CHANGE ---
 
   try {
     const result = await uploadFile(req.file.buffer, 'books');
@@ -41,24 +39,31 @@ exports.uploadBook = async (req, res) => {
       name,
       author,
       publishedBy,
-      tag, // <-- Add 'tag' here
+      tag,
+      access, // --- ADDED 'access' field ---
       cloudinaryFileUrl: result.secure_url,
       cloudinaryFileId: result.public_id,
     });
 
     res.status(201).json(newBook);
-  } catch (error) {
+  } catch (error)
+ {
     res.status(500).json({ message: 'Server Error', error: error.message });
   }
 };
-// @desc    Get all users
-// @route   GET /api/admin/users
-exports.getAllUsers = async (req, res) => {
+
+// Get all users (no changes here)
+const getAllUsers = async (req, res) => {
   try {
-    // Find all users and exclude their passwords from the result
     const users = await User.find({}).select('-password');
     res.json(users);
   } catch (error) {
     res.status(500).json({ message: 'Server Error', error: error.message });
   }
+};
+
+module.exports = {
+    getDashboardStats,
+    uploadBook,
+    getAllUsers
 };

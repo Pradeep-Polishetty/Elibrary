@@ -5,6 +5,14 @@ const bookSchema = new mongoose.Schema({
   author: { type: String, required: true },
   publishedBy: { type: String, required: true },
   tag: { type: String, required: true },
+  // --- THIS IS THE CHANGE ---
+  access: {
+    type: String,
+    enum: ['all', 'student', 'faculty'],
+    default: 'all',
+    required: true,
+  },
+  // --- END OF CHANGE ---
   cloudinaryFileUrl: { type: String, required: true },
   cloudinaryFileId: { type: String, required: true },
   averageRating: { type: Number, default: 0 },

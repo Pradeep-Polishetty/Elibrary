@@ -3,10 +3,15 @@ const dotenv = require('dotenv');
 const cors = require('cors');
 const connectDB = require('./config/db');
 const seedAdmin = require('./scripts/seedAdmin');
+//const initializeFirebaseAdmin = require('./config/firebaseAdmin'); 
+const { admin, auth, db } = require('./config/firebaseAdmin'); // ✅ just import the initialized instance
+
 
 // Load environment variables
 dotenv.config();
 
+// Initialize Firebase Admin SDK
+//initializeFirebaseAdmin(); 
 // Connect to Database
 connectDB();
 

@@ -1,19 +1,21 @@
 import React, { useState } from 'react';
 import { useSelector } from 'react-redux';
 import { selectCurrentUser } from '../store/slices/authSlice'; // Adjust path if needed
-import BookList from '../components/books/BookList'; // Import BookList
+import BookList from '../components/books/BookList'; // Import BookList\
+import RoleSelectionModal from '../components/common/RoleSelectionModal';
 
 const HomePage = () => {
   const user = useSelector(selectCurrentUser);
-
   // Local state for tag filter
   const [tagFilter, setTagFilter] = useState("");
   
   // Example tags — ideally you’ll fetch these from backend or Redux store
   const tags = ["Fiction", "Non-fiction", "Science", "History", "Technology"];
+  
 
   return (
     <div className="container py-5">
+      {user && !user.role && <RoleSelectionModal />}
       <div className="p-5 mb-4 text-center text-info rounded-3">
         {user ? (
           <h1 className="display-4">Welcome back, {user.username}!</h1>

@@ -14,11 +14,14 @@ import { selectCurrentUser } from '../store/slices/authSlice';
 import toast from 'react-hot-toast';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 
+
 const ProfilePage = () => {
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  
+    const user = useSelector(selectCurrentUser);
   
   // State to toggle between view and edit modes
   const [isEditMode, setIsEditMode] = useState(false);
@@ -41,7 +44,7 @@ const ProfilePage = () => {
       toast.error('Passwords do not match');
       return;
     }
-
+    // console.log("Submitting profile update:", { username, email});
     try {
       const updateData = { username, email };
       if (password) {

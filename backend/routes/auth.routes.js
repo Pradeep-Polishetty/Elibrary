@@ -1,9 +1,10 @@
 const express = require('express');
-const { firebaseAuth, loginAdmin } = require('../controllers/auth.controller');
 const router = express.Router();
+// --- CORRECTED IMPORT ---
+const { loginAdmin, firebaseLogin } = require('../controllers/auth.controller');
 
-// Firebase login for users
-router.post('/login', firebaseAuth);
+// --- CORRECTED ROUTE to /firebase-login ---
+router.post('/firebase-login', firebaseLogin);
 
 // Admin login (still custom DB)
 router.post('/admin/login', loginAdmin);

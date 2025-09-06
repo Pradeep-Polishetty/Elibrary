@@ -9,6 +9,7 @@ import ProfilePage from './pages/ProfilePage';
 import AdminLoginPage from './pages/AdminLoginPage';
 import AdminDashboardPage from './pages/AdminDashboardPage';
 import AdminUploadPage from './pages/AdminUploadPage';
+import MainHomePage from './pages/MainHomePage';
 import './App.css';
 
 function App() {
@@ -18,6 +19,7 @@ function App() {
       <main>
         <Routes>
           {/* Public Routes */}
+          <Route path="/mainhomepage" element={<MainHomePage />} />
           <Route path="/" element={<HomePage />} />
           <Route path="/login" element={<LoginPage/>} />
           <Route path="/register" element={<RegisterPage />} />

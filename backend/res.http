@@ -34,6 +34,15 @@ Authorization: Bearer <your_user_jwt_token>
 {
     "username": "myNewUsername"
 }
+### set user role
+PUT http://localhost:5000/api/users/role
+Content-Type: application/json
+Authorization: Bearer <your_token_here>
+
+{
+  "role": "faculty"
+}
+
 ### get all books
 GET http://localhost:5000/api/books
 ### get book by filter

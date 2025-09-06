@@ -1,29 +1,45 @@
 const Book = require('../models/book.model');
 const Rating = require('../models/rating.model');
-const mongoose = require('mongoose');
 
-// @desc    Get all books with filtering
-// @route   GET /api/books
-exports.getAllBooks = async (req, res) => {
+// Get all books with filtering and access control
+const getAllBooks = async (req, res) => {
   try {
-    const { name, author, rating, tag } = req.query; // <-- Add 'tag' here
+    const { tag } = req.query;
     const filter = {};
+    console.log('Authenticated user:', req.user); // Debugging line to check req.user
+    // --- CORRECTED ACCESS CONTROL LOGIC ---
+    // The req.user is now reliably attached by the new middleware
+    console.log(req.user.role);
+    if (req.user && req.user.role) {
+      if (req.user.role === 'student') {
+        filter.access = { $in: ['all', 'student'] };
+      } else if (req.user.role === 'faculty') {
+        filter.access = { $in: ['all', 'faculty'] };
+      }
+      // If admin or 'unassigned', no access filter is applied, so they see all books.
+    } else {
+      // Unauthenticated users only see public books
+      filter.access = 'all';
+    }
+    // --- END ---
 
-    if (name) filter.name = { $regex: name, $options: 'i' };
-    if (author) filter.author = { $regex: author, $options: 'i' };
-    if (rating) filter.averageRating = { $gte: Number(rating) };
-    if (tag) filter.tag = tag; // <-- Add this line
-
+    if (tag) {
+        // Make the tag filter case-insensitive
+        filter.tag = { $regex: new RegExp(`^${tag}$`, 'i') };
+    }
+    // console.log('Filter applied:', filter); // Debugging line to check the filter
+    
     const books = await Book.find(filter).select('-cloudinaryFileId');
+    console.log("Books found:", books); // Debugging line to check number of books found 
     res.json(books);
   } catch (error) {
     res.status(500).json({ message: 'Server Error', error: error.message });
   }
 };
 
-// @desc    Get single book details
-// @route   GET /api/books/:id
-exports.getBookById = async (req, res) => {
+
+// Get single book details (no changes here)
+const getBookById = async (req, res) => {
   try {
     const book = await Book.findById(req.params.id);
 
@@ -31,7 +47,6 @@ exports.getBookById = async (req, res) => {
       return res.status(404).json({ message: 'Book not found' });
     }
 
-    // Increment view count and update last viewed date
     book.viewCount += 1;
     book.lastViewed = new Date();
     await book.save();
@@ -47,9 +62,8 @@ exports.getBookById = async (req, res) => {
   }
 };
 
-// @desc    Rate a book and add feedback
-// @route   POST /api/books/:id/rate
-exports.rateBook = async (req, res) => {
+// Rate a book (no changes here)
+const rateBook = async (req, res) => {
   const { rating, feedback } = req.body;
   const bookId = req.params.id;
   const userId = req.user._id;
@@ -65,13 +79,11 @@ exports.rateBook = async (req, res) => {
       return res.status(404).json({ message: 'Book not found' });
     }
 
-    // Check if user has already rated this book
     const existingRating = await Rating.findOne({ book: bookId, user: userId });
     if (existingRating) {
       return res.status(400).json({ message: 'You have already rated this book' });
     }
 
-    // Create new rating
     await Rating.create({
       book: bookId,
       user: userId,
@@ -80,7 +92,6 @@ exports.rateBook = async (req, res) => {
       feedback,
     });
     
-    // Recalculate average rating for the book
     const ratings = await Rating.find({ book: bookId });
     const totalRating = ratings.reduce((acc, item) => item.rating + acc, 0);
     book.averageRating = totalRating / ratings.length;
@@ -91,4 +102,10 @@ exports.rateBook = async (req, res) => {
   } catch (error) {
     res.status(500).json({ message: 'Server Error', error: error.message });
   }
+};
+
+module.exports = {
+    getAllBooks,
+    getBookById,
+    rateBook
 };
